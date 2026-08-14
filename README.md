@@ -11,10 +11,12 @@ sources. The plugin is a standalone npm package that mounts as a dsh bundle.
 
 ## Install
 
-The package ships as a dsh bundle patch, so it installs through the dsh CLI:
+The package ships as a dsh bundle patch, so it installs through the dsh CLI
+directly from its git repository (the `prepare` script builds `lib/` during
+installation):
 
 ```sh
-dsh plugin --profile <name> add dsh-processes
+dsh plugin --profile <name> add github:liuqh16/dsh-processes
 ```
 
 The bundle manifest (`cordis.patch.yml`) inserts the plugin into the target
@@ -112,15 +114,16 @@ would.
 
 ## Web UI
 
-The companion package [dsh-processes-web](./web/README.md) mounts a process
-dock in the composer input bar: a running-count badge expandable to the
-session's process list with status and the latest notification text. The dock
-is fed by the `processes` session projection this plugin folds from its
-`process/*` events, so no extra data channel is needed. Mount both packages on
-a web profile:
+The companion package [dsh-processes-web](https://github.com/liuqh16/dsh-processes-web)
+mounts a process dock in the composer input bar: a running-count badge
+expandable to the session's process list with status and the latest
+notification text. The dock is fed by the `processes` session projection this
+plugin folds from its `process/*` events, so no extra data channel is needed.
+Mount both packages on a web profile:
 
 ```sh
-dsh plugin --profile <name> add dsh-processes dsh-processes-web
+dsh plugin --profile <name> add github:liuqh16/dsh-processes
+dsh plugin --profile <name> add github:liuqh16/dsh-processes-web
 ```
 
 ## Known Limitations and Deferred Work

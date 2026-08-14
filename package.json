@@ -20,10 +20,15 @@
     "LICENSE"
   ],
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc -p tsconfig.build.json --noCheck && node -e \"const p=require('./package.json');if(!require('fs').existsSync('lib/index.js')||!require('fs').existsSync('lib/index.d.ts'))process.exit(1)\"",
     "typecheck": "tsc -p tsconfig.json",
     "test": "pnpm --dir ../deepseek-harness exec vitest run --config \"$INIT_CWD/vitest.config.mjs\"",
     "pack": "npm pack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liuqh16/dsh-processes.git"
   },
   "license": "MIT",
   "keywords": [
