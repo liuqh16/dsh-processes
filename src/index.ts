@@ -12,6 +12,7 @@ import z from '@deepseek-ai/schemastery'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { registerProcessCommands } from './commands.ts'
 import { ProcessManager } from './manager.ts'
+import { processesProjectionUnit } from './projection.ts'
 import { NotificationService } from './notifications.ts'
 import { registerProcessTool } from './tool.ts'
 import type { ResolvedProcessConfig } from './types.ts'
@@ -121,6 +122,13 @@ export function apply(ctx: Context, config: Config = {}): void {
   })
   registerProcessTool(ctx, manager)
   registerProcessCommands(ctx, manager)
+  // The browser dock reads the processes projection; headless assemblies that
+  // omit the projection registry are unaffected (optional inject).
+  ctx.inject(['sessionProjections'], projectionCtx => {
+    projectionCtx.sessionProjections.register<'processes', Parameters<typeof processesProjectionUnit.apply>[0]>(
+      processesProjectionUnit,
+    )
+  })
   ctx.effect(() => () => {
     notifications.stop()
     manager.dispose()

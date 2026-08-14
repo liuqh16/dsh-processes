@@ -187,6 +187,36 @@ export interface ProcessExitData {
   readonly stoppedAt: number
 }
 
+/** One managed process in the browser projection (whole-value snapshot fields). */
+export interface ProcessProjectionEntry {
+  /** Opaque process id (for example `proc_ab12`). */
+  readonly id: string
+  /** Human display name chosen by the caller. */
+  readonly name: string
+  /** The shell command that was started. */
+  readonly command: string
+  /** Current lifecycle status. */
+  readonly status: ProcessStatus
+  /** Exit code once settled; null while running or after a signal kill. */
+  readonly exitCode: number | null
+  /** Terminating signal name once settled; null on normal exit. */
+  readonly exitSignal: string | null
+  /** Epoch milliseconds when the process started. */
+  readonly startedAt: number
+  /** Epoch milliseconds when the process settled; null while live. */
+  readonly stoppedAt: number | null
+  /** The most recent delivered notification text; null when none was delivered. */
+  readonly lastNotify: string | null
+}
+
+/** The `processes` session projection: a whole-value snapshot of managed processes. */
+export interface ProcessesProjection {
+  /** Every process the session started, in start order. */
+  readonly processes: readonly ProcessProjectionEntry[]
+  /** Live process count, for the dock badge. */
+  readonly running: number
+}
+
 /** Records one delivered notification before it reaches the agent. */
 export interface ProcessNotifyData {
   readonly id: string
@@ -214,5 +244,15 @@ declare module '@deepseek-ai/dsh-session/types' {
      * @param data - process identity, reason, delivered text, and attention.
      */
     'process/notify': ProcessNotifyData
+  }
+}
+
+declare module '@deepseek-ai/dsh-session-projection/types' {
+  interface SessionProjectionMap {
+    /**
+     * The session's managed processes, folded from the process/* events for
+     * the browser dock.
+     */
+    processes: ProcessesProjection
   }
 }
