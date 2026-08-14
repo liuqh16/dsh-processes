@@ -1,0 +1,21 @@
+{
+  // Dev typecheck project: extends the DeepSeek Harness checkout's base
+  // config so the @deepseek-ai/dsh-* paths resolve to harness SOURCES (the
+  // base config's relative paths resolve relative to the file that declares
+  // them, i.e. the harness tree). Composite/incremental are inherited from
+  // that base; a standalone package neither references nor is referenced,
+  // so both are disabled here.
+  "extends": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "noEmit": true,
+    "typeRoots": ["/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/node_modules/@types"]
+  },
+  "include": ["src", "tests"],
+  "references": [
+    { "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/cosmokit" },
+    { "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/cordis" },
+    { "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/schemastery" }
+  ]
+}

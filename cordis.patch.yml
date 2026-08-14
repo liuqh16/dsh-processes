@@ -1,0 +1,9 @@
+# The dsh-processes bundle patch: one insert mounting the plugin row over
+# the composed profile tree. A later profile cordis.patch.yml layer may
+# override this row's whole `config` by id (restate the fields it keeps).
+#
+# Defaults for every field live in the plugin's static Config (schemastery),
+# so the row ships config-free; deployments override only what differs.
+- insert:
+    - id: processes
+      name: dsh-processes

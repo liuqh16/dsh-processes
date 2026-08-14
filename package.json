@@ -1,0 +1,53 @@
+{
+  "name": "dsh-processes",
+  "version": "0.1.0",
+  "description": "Manage background processes from DeepSeek Harness: a `process` tool, /ps commands, output inspection, and exit/log-match notifications. A DSH port of pi-processes.",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json --noCheck && node -e \"const p=require('./package.json');if(!require('fs').existsSync('lib/index.js')||!require('fs').existsSync('lib/index.d.ts'))process.exit(1)\"",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "pnpm --dir ../deepseek-harness exec vitest run --config \"$INIT_CWD/vitest.config.mjs\"",
+    "pack": "npm pack"
+  },
+  "license": "MIT",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "plugin",
+    "process",
+    "background"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/schemastery": "^3.18.1",
+    "@deepseek-ai/dsh-agent": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-commands": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-llm": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-session": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-subprocess": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-timeout": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-system-prompt": "^0.1.0-rc.5",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.5"
+  }
+}
