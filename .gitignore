@@ -2,4 +2,6 @@ node_modules
 lib/
 *.tsbuildinfo
 *.tgz
-.DS_Store
+.DS_Storeweb/dist/
+web/lib/
+web/references.json

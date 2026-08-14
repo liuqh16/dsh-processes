@@ -1,0 +1,210 @@
+{
+  "extends": "../../deepseek-harness/tsconfig.base.client.json",
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "typeRoots": [
+      "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/node_modules/@types",
+      "../node_modules/@types"
+    ]
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/api/gateway/tsconfig.client.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/api/remotes/tsconfig.client.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/attachment/attachment/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/connection/tsconfig.client.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/locale/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/runtime/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/schema-form/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/ui-attachment/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/ui-conversation/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/ui-input-trigger/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/ui-primitives/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/ui-settings/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/client/ui-slots/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/code-runtime/code-runtime/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/compaction/compaction/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/core/agent-default-model/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/core/agent/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/core/scope/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/core/session/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/core/system-prompt/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/core/tools/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/credentials/credentials/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/extensions/cordis-host-runner/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/feedback/message-feedback/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/goal/goal/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/host/apiproxy/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/host/directory-picker/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/host/plugin-inventory/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/host/webserver/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/interaction/commands/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/interaction/user-approval/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/interaction/user-questions/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/jobs/jobs/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/llm/llm-retry/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/llm/llm/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/llm/token-meter/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/preset/agent-presets/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/runtime-diagnostics/invariants/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/sandbox/sandbox-policy/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/sandbox/sandbox/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/session-query/session-query/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/session/session-persistence/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/session/session-projection-cache/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/session/session-projection/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/session/session-stats/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/session/session-title/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/settings/settings/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/skill/skill/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/storage/storage-domain/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/storage/storage/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/subagent/subagent/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/typert/protocol/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/typert/registry/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/util/atomic-write/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/util/brand/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/util/home-paths/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/util/native-command/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/util/timeout/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/packages/workspace/workspace/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/cordis/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/cosmokit/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/include/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/loader/tsconfig.json"
+    },
+    {
+      "path": "/vePFS-Mindverse/user/liuqihan/code/side-project/deepseek-harness/vendor/schemastery/tsconfig.json"
+    }
+  ]
+}

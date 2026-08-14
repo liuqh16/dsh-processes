@@ -110,14 +110,26 @@ subprocess runtime and a scripted mock model, exercising tool calls, durable
 events, and notification-driven wakeups through the same paths a live model
 would.
 
+## Web UI
+
+The companion package [dsh-processes-web](./web/README.md) mounts a process
+dock in the composer input bar: a running-count badge expandable to the
+session's process list with status and the latest notification text. The dock
+is fed by the `processes` session projection this plugin folds from its
+`process/*` events, so no extra data channel is needed. Mount both packages on
+a web profile:
+
+```sh
+dsh plugin --profile <name> add dsh-processes dsh-processes-web
+```
+
 ## Known Limitations and Deferred Work
 
 - The shell runs with `-c` (not pi-processes' `-lc`), so a login profile is
   not sourced; set `shellArgs` explicitly when a login environment is needed.
 - Notifications with `attention: context` only reach an agent already working;
   a fully idle agent never sees them (by design, matching pi-processes).
-- The pi-processes Web dock/logs/status panels are not yet ported; the DSH web
-  integration is a separate milestone.
+- The Web dock shows the latest notification text, not a real-time output
+  tail; full output streaming needs a host RPC channel and is deferred.
 - Output retention is bounded per stream by `maxOutputBytes`/`maxSpillBytes`;
   very large logs are tailed or spilled, never fully retained.
-
