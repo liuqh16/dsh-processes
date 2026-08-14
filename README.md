@@ -19,6 +19,11 @@ installation):
 dsh plugin --profile <name> add github:liuqh16/dsh-processes
 ```
 
+First install on a fresh profile may be refused by pnpm's build-script
+allowlist (the git-install `prepare` build): `dsh` prints the exact
+`allowBuilds` key to add under `allowBuilds` in the profile's
+`pnpm-workspace.yaml`, after which the same command succeeds.
+
 The bundle manifest (`cordis.patch.yml`) inserts the plugin into the target
 profile's composition. The plugin declares the services it needs
 (`tools`, `commands`, `subprocess`, `systemPrompt`) and fails at load when a
