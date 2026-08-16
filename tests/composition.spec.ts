@@ -118,8 +118,10 @@ describe('processes plugin through the agent loop', () => {
     expect(toolResult.data.message.content[0].isError).toBe(false)
     expect(resultText(toolResult)).toContain('Started process "dev-server"')
 
-    const started = findEvent(log, 'process/start')
-    expect(started.data).toMatchObject({ name: 'dev-server', command: 'sleep 60' })
+    const firstResult = findEvent(log, 'tool/result', 'first')
+    const meta = firstResult.data.meta as { kind?: string; process?: { name?: string; command?: string } } | undefined
+    expect(meta?.kind).toBe('start')
+    expect(meta?.process).toMatchObject({ name: 'dev-server', command: 'sleep 60' })
 
     const listResult = findEvent(log, 'tool/result', 'last')
     expect(resultText(listResult)).toContain('dev-server')
@@ -147,22 +149,28 @@ describe('processes plugin through the agent loop', () => {
     await waitForIdle(agent, 1)
     writeFileSync(sentinel, 'go')
 
-    await pollUntil(() => events(agent).some(event => event.type === 'process/notify'))
+    // The exit notification wakes the idle agent: a second turn runs and the
+    // notification text lands as a standard user/message.
     await waitForIdle(agent, 2)
 
-    const notify = findEvent(events(agent), 'process/notify')
-    expect(notify.data).toMatchObject({ name: 'watcher', reason: 'exit', attention: 'turn' })
-    expect(notify.data.text).toContain('exited with code 0')
-
-    // The followup-delivered message reached the model: the final request
-    // carries the plugin-sourced user text verbatim.
-    const lastRequest = adapter.requests.at(-1)
-    const notifyText = (lastRequest?.messages ?? [])
+    const log = events(agent)
+    const notifyMessages = log
+      .filter(event => event.type === 'user/message')
+      .flatMap(event => [event.data as { content: Array<{ type: string; text?: string }> }])
       .flatMap(message => message.content)
       .filter(block => block.type === 'text')
       .map(block => block.text)
       .join('')
-    expect(notifyText).toContain('exited with code 0')
+    expect(notifyMessages).toContain('exited with code 0')
+
+    // The followup-delivered message also reached the model request.
+    const lastRequest = adapter.requests.at(-1)
+    const requestText = (lastRequest?.messages ?? [])
+      .flatMap(message => message.content)
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('')
+    expect(requestText).toContain('exited with code 0')
   })
 
   it('log-match notification fires once for a repeat: false matcher', async () => {
@@ -182,14 +190,21 @@ describe('processes plugin through the agent loop', () => {
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'start the reporter' }], source: { kind: 'user' } }))
     await waitForIdle(agent, 1)
 
-    await pollUntil(() => events(agent).some(event => event.type === 'process/notify'))
+    // The log-match notification wakes the agent for a second turn; the text
+    // lands as a standard user/message.
     await waitForIdle(agent, 2)
 
-    const notify = findEvent(events(agent), 'process/notify')
-    expect(notify.data).toMatchObject({ name: 'reporter', reason: 'log-match', attention: 'turn' })
-    expect(notify.data.text).toContain('ready-now')
+    const log = events(agent)
+    const notifyText = log
+      .filter(event => event.type === 'user/message')
+      .flatMap(event => [event.data as { content: Array<{ type: string; text?: string }> }])
+      .flatMap(message => message.content)
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('')
+    expect(notifyText).toContain('ready-now')
     // One-shot matcher: no second notification while the process stays live.
     await new Promise(resolve => setTimeout(resolve, 400))
-    expect(events(agent).filter(event => event.type === 'process/notify')).toHaveLength(1)
+    expect(endedTurns(agent)).toBe(2)
   })
 })

@@ -24,6 +24,7 @@ import {
   renderUpdate,
   renderWrite,
 } from './render.ts'
+import type { JsonValue } from '@deepseek-ai/dsh-session'
 import type { LogMatcher, NotifyAttention, ProcessInfo, ProcessMatchMode, ProcessStream } from './types.ts'
 import {
   LIMITS,
@@ -306,13 +307,28 @@ function renderToolValue(value: ProcessToolValue): string {
   }
 }
 
-/** The durable presentation payload for the output action. */
-function presentationMetaOf(value: ProcessToolValue): { kind: 'output'; text: string } | null {
-  if (value.kind !== 'output') return null
-  const parts: string[] = []
-  if (value.stdout !== undefined) parts.push(value.stdout.text)
-  if (value.stderr !== undefined) parts.push(value.stderr.text)
-  return { kind: 'output', text: parts.join('\n') }
+/**
+ * Durable presentation payloads: the dock projection folds the process tool's
+ * start/stop/clear results (through the standard tool/result event) instead of
+ * custom session events, so the structured facts ride the result meta.
+ */
+function presentationMetaOf(value: ProcessToolValue): JsonValue | null {
+  switch (value.kind) {
+    case 'output': {
+      const parts: string[] = []
+      if (value.stdout !== undefined) parts.push(value.stdout.text)
+      if (value.stderr !== undefined) parts.push(value.stderr.text)
+      return { kind: 'output', text: parts.join('\n') }
+    }
+    case 'start':
+      return { kind: 'start', process: value.process }
+    case 'stop':
+      return { kind: 'stop', process: value.process }
+    case 'clear':
+      return { kind: 'clear', removed: value.removed }
+    default:
+      return null
+  }
 }
 
 /**

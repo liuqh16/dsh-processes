@@ -2,9 +2,8 @@
  * Notification delivery for dsh-processes: process-exit and log-match
  * notifications mapped to agent attention — turn wakes an idle agent via
  * followup, context reaches a working agent via inject, ignore never
- * delivers. Every delivery is preceded by a durable process/notify session
- * event on the owning session, so the model-visible text is reconstructable
- * from the log either way.
+ * delivers. The delivered text is logged as a standard user/message, so the
+ * model-visible input stays reconstructable from the session log.
  * @module dsh-processes/notifications
  */
 
@@ -111,7 +110,7 @@ export class NotificationService {
       const text = 'Process "' + this.manager.nameOf(id) + '" (' + id + ') output matched "'
         + (firstPattern ?? '') + '" in ' + firstStream + ':\n'
         + FENCE + '\n' + matchedLines.join('\n') + '\n' + FENCE
-      this.deliver(attention, 'log-match', text, this.manager.recordOf(id))
+      this.deliver(attention, text, this.manager.recordOf(id))
     }
   }
 
@@ -133,24 +132,12 @@ export class NotificationService {
       text = 'Process "' + record.name + '" (' + record.id + ') was terminated'
         + (record.exitSignal === null ? '' : ' (' + record.exitSignal + ')')
     }
-    this.deliver(attention, 'exit', text, record)
+    this.deliver(attention, text, record)
   }
 
-  /** Deliver one notification: durable event first, then agent delivery. */
-  private deliver(attention: NotifyAttention, reason: 'exit' | 'log-match', text: string, record: ManagedProcess): void {
+  /** Deliver one notification to the agent; the text is logged as user/message. */
+  private deliver(attention: NotifyAttention, text: string, record: ManagedProcess): void {
     if (attention === 'ignore') return
-    try {
-      record.owner.session.append('process/notify', {
-        id: record.id,
-        name: record.name,
-        reason,
-        text,
-        attention,
-      })
-    } catch {
-      // The owning session was disposed while the process outlived it; the
-      // live delivery below still reaches the agent when it exists.
-    }
     const message = createUserMessage({
       content: [{ type: 'text', text }],
       source: PLUGIN_SOURCE,

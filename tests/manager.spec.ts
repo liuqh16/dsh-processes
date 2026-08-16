@@ -142,9 +142,6 @@ describe('ProcessManager lifecycle', () => {
     expect(info.status).toBe('running')
     expect(info.pid).toBeGreaterThan(0)
     expect(info.cwd).toBe('/tmp')
-    const session = (agent as unknown as { session: { events: Array<{ type: string; data: unknown }> } }).session
-    const started = session.events.find(event => event.type === 'process/start')
-    expect(started?.data).toMatchObject({ name: 'server', command: 'sleep 30' })
     await manager.dispose()
   })
 
@@ -245,19 +242,6 @@ describe('ProcessManager lifecycle', () => {
     expect(matchers.map(m => m.pattern)).toEqual(['x'])
     matchers = manager.update(info.id, { mode: 'clear' })
     expect(matchers).toEqual([])
-    await manager.dispose()
-  })
-
-  it('clear records a process/clear event per removed process on its owner session', async () => {
-    const { manager } = await makeManager()
-    const agent = stubAgent()
-    const done = await manager.start({ name: 'done', command: 'true', owner: agent })
-    await pollStatus(manager, done.id)
-    expect(manager.clear()).toBe(1)
-    const session = (agent as unknown as { session: { events: Array<{ type: string; data: unknown }> } }).session
-    const cleared = session.events.filter(event => event.type === 'process/clear')
-    expect(cleared).toHaveLength(1)
-    expect(cleared[0]?.data).toMatchObject({ id: done.id, name: 'done' })
     await manager.dispose()
   })
 

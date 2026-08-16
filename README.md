@@ -71,10 +71,9 @@ log matches (`notify.logMatches`). Attention levels:
 - `context` — reach an agent still working via inject.
 - `ignore` — never notify (exit events are still logged).
 
-Every delivery first appends a durable `process/notify` session event, then
-delivers the exact same text to the agent, so the model-visible input is always
-reconstructable from the session log. Matchers are one-shot by default
-(`repeat: false`).
+The delivered text is logged as a standard `user/message`, so the
+model-visible input is always reconstructable from the session log. Matchers
+are one-shot by default (`repeat: false`).
 
 ## Configuration
 
@@ -93,13 +92,20 @@ Numeric bounds the schema cannot express (positive finite values, grace within
 the harness timer ceiling) are validated at load; the plugin refuses to run with
 a misconfigured deployment.
 
-## Durable events
+## Session-log footprint
 
-- `process/start` — a process started (identity + start facts).
-- `process/exit` — a process settled (status, exit code, signal).
-- `process/notify` — a notification was delivered (reason, text, attention).
+The plugin writes **no custom session events**. Everything the dock needs
+rides the standard events the process tool already produces:
 
-The event types register through `SessionEventMap` declaration merging.
+- `tool/call` + `tool/result` — the process tool's start/stop/clear results,
+  whose `presentationMeta` carries the structured process facts the
+  `processes` projection folds for the dock.
+- `user/message` — notification text delivered to the agent (followup /
+  inject), so the model-visible input stays reconstructable from the log.
+
+Custom event types would be refused by any harness whose event allowlist
+does not know them (and out-of-repo event registration is not yet available),
+so the projection deliberately folds standard events instead.
 
 ## Development
 

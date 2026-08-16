@@ -306,14 +306,6 @@ export class ProcessManager {
       (outcome) => this.settle(id, outcome),
       (error: unknown) => this.settleSpawnFailure(id, error),
     )
-    this.appendEvent(record.owner, 'process/start', {
-      id,
-      name: request.name,
-      command: request.command,
-      cwd,
-      pid: handle.pid,
-      startedAt: record.startedAt,
-    })
     return this.publicInfo(record)
   }
 
@@ -453,14 +445,6 @@ export class ProcessManager {
       if (!LIVE_STATUSES.has(process.status)) {
         this.processes.delete(id)
         removed++
-        // The dock folds the session events, so a registry-only removal would
-        // leave the settled row visible forever; append the clear record to
-        // the owning session so the projection drops it.
-        this.appendEvent(process.owner, 'process/clear', {
-          id: process.id,
-          name: process.name,
-          clearedAt: Date.now(),
-        })
       }
     }
     return removed
@@ -574,30 +558,9 @@ export class ProcessManager {
   }
 
   private finishSettle(record: ManagedProcess): void {
-    this.appendEvent(record.owner, 'process/exit', {
-      id: record.id,
-      name: record.name,
-      status: record.status,
-      exitCode: record.exitCode,
-      exitSignal: record.exitSignal,
-      stoppedAt: record.stoppedAt ?? Date.now(),
-    })
     this.onSettled?.(record)
   }
 
-  /** Append one durable session event to the owning agent's session. */
-  private appendEvent(
-    owner: Agent,
-    type: 'process/start' | 'process/exit' | 'process/clear',
-    data: unknown,
-  ): void {
-    try {
-      owner.session.append(type, data as never)
-    } catch {
-      // The owner's session was disposed while the process outlived it; the
-      // durable record is lost and the live notification path is unaffected.
-    }
-  }
 
   private publicInfo(record: ManagedProcess): ProcessInfo {
     return {

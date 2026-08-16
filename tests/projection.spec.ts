@@ -1,6 +1,7 @@
 /**
- * Unit coverage for the processes session projection: the pure fold over
- * process/* events and the schema the wire payload is validated against.
+ * Unit coverage for the processes session projection: the fold over the
+ * process tool's tool/result meta (start/stop/clear) — no custom session
+ * events, so logs stay readable by any harness.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -13,46 +14,44 @@ import {
 } from '../src/projection.ts'
 import type { ProcessesProjection } from '../src/types.ts'
 
-/** Build one process/start event. */
-function startEvent(id: string, name = 'proc', command = 'echo hi'): SessionEvent {
+/** One process row as the tool's result meta carries it. */
+function metaProcess(id: string, name = 'proc', command = 'echo hi'): {
+  id: string
+  name: string
+  command: string
+  status: 'running' | 'terminating' | 'finished' | 'failed' | 'killed' | 'terminate_timeout'
+  exitCode: number | null
+  exitSignal: string | null
+  startedAt: number
+  stoppedAt: number | null
+} {
   return {
-    type: 'process/start',
+    id,
+    name,
+    command,
+    status: 'running',
+    exitCode: null,
+    exitSignal: null,
+    startedAt: Date.now(),
+    stoppedAt: null,
+  }
+}
+
+/** Build one tool/result event carrying the process tool's meta. */
+function resultEvent(meta: unknown): SessionEvent {
+  return {
+    type: 'tool/result',
     seq: 1,
     time: Date.now(),
-    data: { id, name, command, cwd: '/tmp', pid: 100, startedAt: Date.now() },
-  } as unknown as SessionEvent
-}
-
-/** Build one process/exit event. */
-function exitEvent(
-  id: string,
-  status: 'finished' | 'failed' | 'killed',
-  exitCode: number | null = 0,
-  exitSignal: string | null = null,
-): SessionEvent {
-  return {
-    type: 'process/exit',
-    seq: 2,
-    time: Date.now(),
-    data: { id, name: 'proc', status, exitCode, exitSignal, stoppedAt: Date.now() },
-  } as unknown as SessionEvent
-}
-
-/** Build one process/notify event. */
-function notifyEvent(id: string, text: string): SessionEvent {
-  return {
-    type: 'process/notify',
-    seq: 3,
-    time: Date.now(),
-    data: { id, name: 'proc', reason: 'exit', text, attention: 'turn' },
+    data: { turn: 1, step: 1, message: { content: [] }, meta },
   } as unknown as SessionEvent
 }
 
 describe('applyProcessesProjection', () => {
-  it('starts empty and appends running processes in start order', () => {
+  it('starts empty and adds running processes from start results', () => {
     const state = applyProcessesProjection(
       EMPTY_PROCESSES_PROJECTION,
-      startEvent('proc_ab12', 'server', 'npm run dev'),
+      resultEvent({ kind: 'start', process: metaProcess('proc_ab12', 'server', 'npm run dev') }),
     )
     expect(state.processes).toHaveLength(1)
     expect(state.processes[0]).toMatchObject({
@@ -66,32 +65,42 @@ describe('applyProcessesProjection', () => {
     })
     expect(state.running).toBe(1)
 
-    const second = applyProcessesProjection(state, startEvent('proc_cd34', 'tests', 'pnpm test'))
+    const second = applyProcessesProjection(
+      state,
+      resultEvent({ kind: 'start', process: metaProcess('proc_cd34', 'tests', 'pnpm test') }),
+    )
     expect(second.processes.map(entry => entry.id)).toEqual(['proc_ab12', 'proc_cd34'])
     expect(second.running).toBe(2)
   })
 
-  it('exit settles the entry and decrements the running count', () => {
-    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
-    const exited = applyProcessesProjection(started, exitEvent('proc_ab12', 'finished', 0))
-    expect(exited.processes[0]).toMatchObject({
+  it('stop results settle the entry and decrement the running count', () => {
+    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, resultEvent({ kind: 'start', process: metaProcess('proc_ab12') }))
+    const stopped = applyProcessesProjection(started, resultEvent({
+      kind: 'stop',
+      process: { ...metaProcess('proc_ab12'), status: 'finished', exitCode: 0, stoppedAt: Date.now() },
+    }))
+    expect(stopped.processes[0]).toMatchObject({
       status: 'finished',
       exitCode: 0,
-      exitSignal: null,
       stoppedAt: expect.any(Number),
     })
-    expect(exited.running).toBe(0)
+    expect(stopped.running).toBe(0)
   })
 
-  it('notify records the last delivered text', () => {
-    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
-    const notified = applyProcessesProjection(started, notifyEvent('proc_ab12', 'exited with code 0'))
-    expect(notified.processes[0]?.lastNotify).toBe('exited with code 0')
-    expect(notified.running).toBe(1)
+  it('clear removes the settled entries and keeps live ones', () => {
+    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, resultEvent({ kind: 'start', process: metaProcess('proc_ab12') }))
+    const stopped = applyProcessesProjection(started, resultEvent({
+      kind: 'stop',
+      process: { ...metaProcess('proc_ab12'), status: 'finished', exitCode: 0, stoppedAt: Date.now() },
+    }))
+    const live = applyProcessesProjection(stopped, resultEvent({ kind: 'start', process: metaProcess('proc_live') }))
+    const cleared = applyProcessesProjection(live, resultEvent({ kind: 'clear', removed: 1 }))
+    expect(cleared.processes.map(entry => entry.id)).toEqual(['proc_live'])
+    expect(cleared.running).toBe(1)
   })
 
   it('returns the same reference for unrelated events', () => {
-    const state = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
+    const state = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, resultEvent({ kind: 'start', process: metaProcess('proc_ab12') }))
     const unrelated = {
       type: 'user/message',
       seq: 9,
@@ -101,48 +110,17 @@ describe('applyProcessesProjection', () => {
     expect(applyProcessesProjection(state, unrelated)).toBe(state)
   })
 
-  it('ignores exit/notify events for unknown ids', () => {
-    const state = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
-    expect(applyProcessesProjection(state, exitEvent('proc_ffff', 'finished'))).toBe(state)
-    expect(applyProcessesProjection(state, notifyEvent('proc_ffff', 'x'))).toBe(state)
-  })
-
-  it('clear removes the settled entry and recomputes the running count', () => {
-    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
-    const exited = applyProcessesProjection(started, exitEvent('proc_ab12', 'finished'))
-    const cleared = applyProcessesProjection(exited, {
-      type: 'process/clear',
-      seq: 4,
-      time: Date.now(),
-      data: { id: 'proc_ab12', name: 'proc', clearedAt: Date.now() },
-    } as unknown as SessionEvent)
-    expect(cleared.processes).toHaveLength(0)
-    expect(cleared.running).toBe(0)
-  })
-
-  it('clear for an unknown id leaves the projection unchanged', () => {
-    const state = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
-    const cleared = applyProcessesProjection(state, {
-      type: 'process/clear',
-      seq: 4,
-      time: Date.now(),
-      data: { id: 'proc_ffff', name: 'x', clearedAt: Date.now() },
-    } as unknown as SessionEvent)
-    expect(cleared).toBe(state)
-  })
-
-  it('killed exits carry the signal', () => {
-    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
-    const killed = applyProcessesProjection(started, exitEvent('proc_ab12', 'killed', null, 'SIGTERM'))
-    expect(killed.processes[0]).toMatchObject({ status: 'killed', exitCode: null, exitSignal: 'SIGTERM' })
-    expect(killed.running).toBe(0)
+  it('ignores results without the process meta', () => {
+    const state = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, resultEvent({ kind: 'start', process: metaProcess('proc_ab12') }))
+    expect(applyProcessesProjection(state, resultEvent({ kind: 'output', text: 'hello' }))).toBe(state)
+    expect(applyProcessesProjection(state, resultEvent({ something: 1 }))).toBe(state)
   })
 })
 
 describe('processes projection wire', () => {
   it('the unit declares the expected key and version', () => {
     expect(processesProjectionUnit.key).toBe('processes')
-    expect(processesProjectionUnit.stateVersion).toBe(1)
+    expect(processesProjectionUnit.stateVersion).toBe(2)
     expect(processesProjectionUnit.init()).toEqual(EMPTY_PROCESSES_PROJECTION)
   })
 
@@ -166,3 +144,4 @@ describe('processes projection wire', () => {
     expect(processesProjectionSchema.safeParse({ processes: [{}], running: 1 }).success).toBe(false)
   })
 })
+

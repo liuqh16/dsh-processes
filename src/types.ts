@@ -1,8 +1,7 @@
 /**
  * Shared vocabulary for the dsh-processes plugin: public process facts, tool
  * argument and result types, notification settings, resolved configuration,
- * and the durable `process/*` session events appended to the owning agent's
- * session.
+ * and the browser projection types folded from the process tool's results.
  * @module dsh-processes/types
  */
 
@@ -123,6 +122,36 @@ export interface WatchUpdateRequest {
   items?: readonly RawLogMatcher[]
 }
 
+/** One managed process in the browser projection (whole-value snapshot fields). */
+export interface ProcessProjectionEntry {
+  /** Opaque process id (for example `proc_ab12`). */
+  readonly id: string
+  /** Human display name chosen by the caller. */
+  readonly name: string
+  /** The shell command that was started. */
+  readonly command: string
+  /** Current lifecycle status. */
+  readonly status: ProcessStatus
+  /** Exit code once settled; null while running or after a signal kill. */
+  readonly exitCode: number | null
+  /** Terminating signal name once settled; null on normal exit. */
+  readonly exitSignal: string | null
+  /** Epoch milliseconds when the process started. */
+  readonly startedAt: number
+  /** Epoch milliseconds when the process settled; null while live. */
+  readonly stoppedAt: number | null
+  /** The most recent delivered notification text; null when none was delivered. */
+  readonly lastNotify: string | null
+}
+
+/** The `processes` session projection: a whole-value snapshot of managed processes. */
+export interface ProcessesProjection {
+  /** Every process the session started, in start order. */
+  readonly processes: readonly ProcessProjectionEntry[]
+  /** Live process count, for the dock badge. */
+  readonly running: number
+}
+
 /** Public facts about one managed process (the `list`/`start`/`stop` value). */
 export interface ProcessInfo {
   /** Opaque process id (for example `proc_ab12`). */
@@ -167,107 +196,11 @@ export interface ResolvedProcessConfig {
   maxProcesses: number
 }
 
-/** Opens one durable process record. */
-export interface ProcessStartData {
-  readonly id: string
-  readonly name: string
-  readonly command: string
-  readonly cwd: string
-  readonly pid: number
-  readonly startedAt: number
-}
-
-/** Settles one previously started process record. */
-export interface ProcessExitData {
-  readonly id: string
-  readonly name: string
-  readonly status: Exclude<ProcessStatus, 'running' | 'terminating' | 'terminate_timeout'>
-  readonly exitCode: number | null
-  readonly exitSignal: string | null
-  readonly stoppedAt: number
-}
-
-/** One managed process in the browser projection (whole-value snapshot fields). */
-export interface ProcessProjectionEntry {
-  /** Opaque process id (for example `proc_ab12`). */
-  readonly id: string
-  /** Human display name chosen by the caller. */
-  readonly name: string
-  /** The shell command that was started. */
-  readonly command: string
-  /** Current lifecycle status. */
-  readonly status: ProcessStatus
-  /** Exit code once settled; null while running or after a signal kill. */
-  readonly exitCode: number | null
-  /** Terminating signal name once settled; null on normal exit. */
-  readonly exitSignal: string | null
-  /** Epoch milliseconds when the process started. */
-  readonly startedAt: number
-  /** Epoch milliseconds when the process settled; null while live. */
-  readonly stoppedAt: number | null
-  /** The most recent delivered notification text; null when none was delivered. */
-  readonly lastNotify: string | null
-}
-
-/** The `processes` session projection: a whole-value snapshot of managed processes. */
-export interface ProcessesProjection {
-  /** Every process the session started, in start order. */
-  readonly processes: readonly ProcessProjectionEntry[]
-  /** Live process count, for the dock badge. */
-  readonly running: number
-}
-
-/** Removes one settled process from the browser projection (the clear action). */
-export interface ProcessClearData {
-  /** Opaque process id being removed. */
-  readonly id: string
-  /** Human display name of the removed process. */
-  readonly name: string
-  /** Epoch milliseconds of the clear. */
-  readonly clearedAt: number
-}
-
-/** Records one delivered notification before it reaches the agent. */
-export interface ProcessNotifyData {
-  readonly id: string
-  readonly name: string
-  readonly reason: 'exit' | 'log-match'
-  /** Exact text delivered to the agent (also logged as `user/message`). */
-  readonly text: string
-  readonly attention: NotifyAttention
-}
-
-declare module '@deepseek-ai/dsh-session/types' {
-  interface SessionEventMap {
-    /**
-     * A managed process started.
-     * @param data - stable process identity and start facts.
-     */
-    'process/start': ProcessStartData
-    /**
-     * A managed process settled (finished, failed, or killed).
-     * @param data - stable process identity and exit facts.
-     */
-    'process/exit': ProcessExitData
-    /**
-     * A notification was delivered for a process (exit or log match).
-     * @param data - process identity, reason, delivered text, and attention.
-     */
-    'process/notify': ProcessNotifyData
-    /**
-     * A settled process was removed by the clear action; the browser dock
-     * drops its row.
-     * @param data - the removed process identity and clear time.
-     */
-    'process/clear': ProcessClearData
-  }
-}
-
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionMap {
     /**
-     * The session's managed processes, folded from the process/* events for
-     * the browser dock.
+     * The session's managed processes, folded from the process tool's
+     * tool/result meta for the browser dock.
      */
     processes: ProcessesProjection
   }
