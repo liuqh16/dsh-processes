@@ -94,6 +94,18 @@ export function applyProcessesProjection(state: ProcessesProjection, event: Sess
         stoppedAt: data.stoppedAt,
       }))
     }
+    case 'process/clear': {
+      const data = event.data as unknown as {
+        id: string
+      }
+      const index = state.processes.findIndex(entry => entry.id === data.id)
+      if (index < 0) return state
+      const processes = state.processes.filter(entry => entry.id !== data.id)
+      return {
+        processes,
+        running: runningOf(processes),
+      }
+    }
     case 'process/notify': {
       const data = event.data as unknown as {
         id: string

@@ -453,6 +453,14 @@ export class ProcessManager {
       if (!LIVE_STATUSES.has(process.status)) {
         this.processes.delete(id)
         removed++
+        // The dock folds the session events, so a registry-only removal would
+        // leave the settled row visible forever; append the clear record to
+        // the owning session so the projection drops it.
+        this.appendEvent(process.owner, 'process/clear', {
+          id: process.id,
+          name: process.name,
+          clearedAt: Date.now(),
+        })
       }
     }
     return removed
@@ -580,7 +588,7 @@ export class ProcessManager {
   /** Append one durable session event to the owning agent's session. */
   private appendEvent(
     owner: Agent,
-    type: 'process/start' | 'process/exit',
+    type: 'process/start' | 'process/exit' | 'process/clear',
     data: unknown,
   ): void {
     try {

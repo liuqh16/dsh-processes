@@ -107,6 +107,30 @@ describe('applyProcessesProjection', () => {
     expect(applyProcessesProjection(state, notifyEvent('proc_ffff', 'x'))).toBe(state)
   })
 
+  it('clear removes the settled entry and recomputes the running count', () => {
+    const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
+    const exited = applyProcessesProjection(started, exitEvent('proc_ab12', 'finished'))
+    const cleared = applyProcessesProjection(exited, {
+      type: 'process/clear',
+      seq: 4,
+      time: Date.now(),
+      data: { id: 'proc_ab12', name: 'proc', clearedAt: Date.now() },
+    } as unknown as SessionEvent)
+    expect(cleared.processes).toHaveLength(0)
+    expect(cleared.running).toBe(0)
+  })
+
+  it('clear for an unknown id leaves the projection unchanged', () => {
+    const state = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
+    const cleared = applyProcessesProjection(state, {
+      type: 'process/clear',
+      seq: 4,
+      time: Date.now(),
+      data: { id: 'proc_ffff', name: 'x', clearedAt: Date.now() },
+    } as unknown as SessionEvent)
+    expect(cleared).toBe(state)
+  })
+
   it('killed exits carry the signal', () => {
     const started = applyProcessesProjection(EMPTY_PROCESSES_PROJECTION, startEvent('proc_ab12'))
     const killed = applyProcessesProjection(started, exitEvent('proc_ab12', 'killed', null, 'SIGTERM'))

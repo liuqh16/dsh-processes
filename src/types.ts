@@ -217,6 +217,16 @@ export interface ProcessesProjection {
   readonly running: number
 }
 
+/** Removes one settled process from the browser projection (the clear action). */
+export interface ProcessClearData {
+  /** Opaque process id being removed. */
+  readonly id: string
+  /** Human display name of the removed process. */
+  readonly name: string
+  /** Epoch milliseconds of the clear. */
+  readonly clearedAt: number
+}
+
 /** Records one delivered notification before it reaches the agent. */
 export interface ProcessNotifyData {
   readonly id: string
@@ -244,6 +254,12 @@ declare module '@deepseek-ai/dsh-session/types' {
      * @param data - process identity, reason, delivered text, and attention.
      */
     'process/notify': ProcessNotifyData
+    /**
+     * A settled process was removed by the clear action; the browser dock
+     * drops its row.
+     * @param data - the removed process identity and clear time.
+     */
+    'process/clear': ProcessClearData
   }
 }
 
